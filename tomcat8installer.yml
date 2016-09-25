@@ -1,0 +1,31 @@
+---
+ - hosts: servidor
+   user: root
+   
+   tasks:
+   - name: criando diretorio de instalação
+     file: path=/opt/tomcat state=directory
+   - name: Baixando Apache Tomcat 8
+     get_url: url="http://ftp.unicamp.br/pub/apache/tomcat/tomcat-8/v8.5.5/bin/apache-tomcat-8.5.5.tar.gz" dest=/opt
+   - name: Descompactando arquivos
+     unarchive: src=/opt/apache-tomcat-8.5.5.tar.gz dest=/opt/tomcat
+   - name: Movendo zip para pasta de instalção
+     command: mv /opt/apache-tomcat-8.5.5.tar.gz /opt/tomcat
+   - name: criando diretorio de instalação
+     file: path=/opt/tomcat8 owner=tomcat group=tomcat state=directory
+   - name: Movendo arquivos para pasta de instalção correta
+     copy: src=/opt/tomcat/apache-tomcat-8.5.5/ dest=/opt/tomcat8 mode=755
+   - name: Adicionando usuário para serviço
+     user: name="tomcat" home="/opt/tomcat/temp" shell="/sbin/nologin" state="present"
+   - name: Criando pasta logs
+     file: path=/opt/tomcat8/logs state=directory
+   - name: Alterando permissões da pasta de instalação
+     command: chown -R tomcat:tomcat /opt/tomcat8/
+   - name: Copiando script customizado
+     copy: src=/etc/ansible/tomcat8 dest=/etc/init.d/tomcat8
+   - name: Copiando XML
+     copy: src=/etc/ansible/server.xml dest=/opt/tomcat8/conf
+   - name: Alterando permissao de execução
+     file: path=/etc/init.d/tomcat8 mode=755
+   - name: iniciando serviço apache
+     service: name=tomcat8 enabled=yes  state=restarted
