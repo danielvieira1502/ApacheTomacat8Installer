@@ -1,6 +1,6 @@
 ---
-#- name: Download Apache Tomcat 8
-#     get_url: url="http://ftp.unicamp.br/pub/apache/tomcat/tomcat-8/v8.5.5/bin/apache-tomcat-8.5.5.tar.gz" dest=/tmp
+   - name: Download Apache Tomcat 8
+     get_url: url="http://ftp.unicamp.br/pub/apache/tomcat/tomcat-8/v8.5.5/bin/apache-tomcat-8.5.5.tar.gz" dest=/tmp
 
    - name: Unarchive Apache Tomcat
      unarchive: src='/tmp/apache-tomcat-8.5.5.tar.gz' dest={{ CATALINA_BASE }} copy=no
@@ -34,11 +34,13 @@
      when: 'ansible_service_mgr != "systemd"'
      sudo: yes
 
-   - template: src=roles/tomcat/templates/service.j2 dest=/etc/systemd/system/tomcat.service
+   - name: Install Tomcat Systemd Service
+     template: src=roles/tomcat/templates/service.j2 dest=/etc/systemd/system/tomcat.service
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 
-   - raw: systemctl daemon-reload
+   - name: Daemon Reload Tomcat Systemd Service
+     systemd: daemon_reload=yes name=tomcat enabled=yes 
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 

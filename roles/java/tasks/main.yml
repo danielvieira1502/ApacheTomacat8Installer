@@ -75,13 +75,13 @@
      when: ("download|changed" or "download|succeeded") and ansible_pkg_mgr == "zypper"
      sudo: yes
 
-   - name: Configurando JAVA_HOME
+   - name: Configure JAVA_HOME
      set_fact:
         java_home: /usr/java/jdk1.8.0_91
      when: ("download|changed" or "download|succeeded") and (ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "zypper")
      sudo: yes
 
-   - name: Configurando JAVA_HOME
+   - name: Configure JAVA_HOME
      set_fact:
         java_home: /usr/lib/jvm/java-8-oracle
      when: ("download|changed" or "download|succeeded") and ansible_pkg_mgr == "apt"
