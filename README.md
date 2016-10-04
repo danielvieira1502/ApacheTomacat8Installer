@@ -17,8 +17,7 @@ This is a ansible playbook to automate Apache Tomcat 8 installation.
 
  - Debian like
  - RedHat like
-
-### Supported Services Managers
+ - SUSE like
 
  - SysVinit
  - SystemD
