@@ -39,8 +39,7 @@
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 
-   - name: Daemon Reload Tomcat Systemd Service
-     systemd: daemon_reload=yes name=tomcat enabled=yes 
+   - systemd: daemon_reload=yes name=tomcat enabled=yes 
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 
