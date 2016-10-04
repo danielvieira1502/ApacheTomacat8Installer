@@ -1,0 +1,10 @@
+[Unit]
+Description=Tomcat Service
+After=network.target
+
+[Service]
+ExecStart={{ CATALINA_BASE }}/apache-tomcat-8.5.5/bin/catalina.sh start
+ExecStop={{ CATALINA_BASE }}/apache-tomcat-8.5.5/bin/catalina.sh stop
+
+[Install]
+WantedBy=multi-user.target

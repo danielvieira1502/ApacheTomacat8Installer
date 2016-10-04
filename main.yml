@@ -1,0 +1,7 @@
+ - hosts: webservers 
+   strategy: free
+   roles:
+     - role: java
+     - role: tomcat
+   vars_files:
+     - group_vars/tomcat.yml
