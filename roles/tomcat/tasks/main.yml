@@ -39,7 +39,9 @@
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 
-   - systemd: daemon_reload=yes name=tomcat enabled=yes 
+   - raw: systemctl daemon-reload
+     ## Just supported in 2.2+ ansible version
+     #- systemd: state=restarted daemon_reload:yes name=tomcat
      when: 'ansible_service_mgr == "systemd"'
      sudo: yes
 

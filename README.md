@@ -10,7 +10,7 @@ This is a ansible playbook to automate Apache Tomcat 8 installation.
 
 ### Requirements
 
- - Ansible 2.1.1+
+ - Ansible 2.1+
  - python2
 
 ### Supported OSes
