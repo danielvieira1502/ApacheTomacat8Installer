@@ -1,0 +1,93 @@
+---
+   - name: Remove OpenJDK
+     apt: name=openjdk-* state=absent
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+
+   - name: Configure Java JDK 8 Repository
+     apt_repository:
+       repo='deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main'
+       update_cache=yes
+       state=present
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+
+   - name: Configure Java JDK 8 sources repository
+     apt_repository:
+       repo='deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main'
+       update_cache=yes
+       state=present
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+
+   - name: Add apt-utils
+     apt: name=apt-utils state=present
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+     
+   - name: Accept Java 8 License
+     debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+
+   - name: Add repository key
+     command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+     
+   - name: Update repo cache
+     apt: update_cache=yes
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+
+   - name: Install JDK 8
+     apt: name=oracle-java8-installer state=present
+     when: ansible_pkg_mgr == 'apt'
+     sudo: yes
+     
+   - name: yum Java
+     yum: name=/tmp/java.rpm state=installed 
+     when: ansible_pkg_mgr == 'yum'
+     register: install
+     ignore_errors: True
+     sudo: yes
+
+   - name: zypper Java
+     zypper: name=/tmp/java.rpm state=present
+     when: "ansible_pkg_mgr == 'zypper'"
+     register: installZ
+     ignore_errors: True
+     sudo: yes
+
+   - name: Download Java
+     get_url: url=http://download.oracle.com/otn-pub/java/jdk/8u91-b14/jdk-8u91-linux-x64.rpm dest=/tmp/java.rpm headers='Cookie:oraclelicense=accept-securebackup-cookie' validate_certs=no
+     when: ("install|failed" or "installZ|failed") and (ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "zypper")
+     register: download
+     sudo: yes
+
+   - name: yum Java
+     yum: name=/tmp/java.rpm state=installed 
+     when: ("download|changed" or "download|succeeded") and ansible_pkg_mgr == "yum"
+     sudo: yes
+
+   - name: zypper Java
+     zypper: name="/tmp/java.rpm" state=installed
+     when: ("download|changed" or "download|succeeded") and ansible_pkg_mgr == "zypper"
+     sudo: yes
+
+   - name: Configure JAVA_HOME
+     set_fact:
+        java_home: /usr/java/jdk1.8.0_91
+     when: ("download|changed" or "download|succeeded") and (ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "zypper")
+     sudo: yes
+
+   - name: Configure JAVA_HOME
+     set_fact:
+        java_home: /usr/lib/jvm/java-8-oracle
+     when: ("download|changed" or "download|succeeded") and ansible_pkg_mgr == "apt"
+     sudo: yes
+
+   - name: Set java_home in /etc/profile.d
+     raw: echo "export JAVA_HOME={{ java_home }}" > /etc/profile.d/java.sh
+     when: ("download|changed" or "download|succeeded") and (ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "zypper")
+     sudo: yes

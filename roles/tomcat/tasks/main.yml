@@ -1,0 +1,47 @@
+---
+   - name: Download Apache Tomcat 8
+     get_url: url="http://ftp.unicamp.br/pub/apache/tomcat/tomcat-8/v8.5.5/bin/apache-tomcat-8.5.5.tar.gz" dest=/tmp
+
+   - name: Unarchive Apache Tomcat
+     unarchive: src='/tmp/apache-tomcat-8.5.5.tar.gz' dest={{ CATALINA_BASE }} copy=no
+     sudo: yes
+     
+   - name: Create logs directory
+     file: path={{ CATALINA_BASE }}/apache-tomcat-8.5.5/logs state=directory
+     sudo: yes
+     
+   - name: Alterando permissões da pasta de instalação
+     file: owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} path={{ CATALINA_BASE }}/apache-tomcat-8.5.5/
+     sudo: yes
+
+   - name: Add chkconfig parameter in the catalina.sh script
+     raw: sed -i '2s/^/{{ item }} \n /' {{ CATALINA_BASE }}/apache-tomcat-8.5.5/bin/catalina.sh
+     with_items:
+       - "# chkconfig: 35 20 80"
+     sudo: yes
+     
+   - name: Create service init.d
+     file: src={{ CATALINA_BASE }}/apache-tomcat-8.5.5/bin/catalina.sh dest=/etc/init.d/tomcat state=link mode=755
+     when: 'ansible_service_mgr != "systemd"'
+     sudo: yes
+
+   - name: Configure server.xml
+     template: src=roles/tomcat/templates/server.j2 dest={{ CATALINA_BASE }}/apache-tomcat-8.5.5/conf/server.xml
+     sudo: yes
+
+   - name: Enable and restart tomcat service
+     service: name=tomcat enabled=yes state=restarted
+     when: 'ansible_service_mgr != "systemd"'
+     sudo: yes
+
+   - name: Install Tomcat Systemd Service
+     template: src=roles/tomcat/templates/service.j2 dest=/etc/systemd/system/tomcat.service
+     when: 'ansible_service_mgr == "systemd"'
+     sudo: yes
+
+   - raw: systemctl daemon-reload
+     ## Just supported in 2.2+ ansible version
+     #- systemd: state=restarted daemon_reload:yes name=tomcat
+     when: 'ansible_service_mgr == "systemd"'
+     sudo: yes
+
